@@ -22,6 +22,7 @@ import com.alibaba.nacos.core.utils.Loggers;
 import com.alibaba.nacos.plugin.auth.api.Permission;
 import com.alibaba.nacos.plugin.auth.exception.AccessException;
 import com.alibaba.nacos.plugin.auth.impl.constant.AuthConstants;
+import com.alibaba.nacos.plugin.auth.impl.cache.DerivedSecretCache;
 import com.alibaba.nacos.plugin.auth.impl.roles.NacosRoleServiceImpl;
 import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUser;
@@ -45,11 +46,15 @@ public class AbstractAuthenticationManager implements IAuthenticationManager {
     
     protected NacosRoleServiceImpl roleService;
     
+    protected DerivedSecretCache derivedSecretCache;
+    
     public AbstractAuthenticationManager(NacosUserDetailsServiceImpl userDetailsService,
-            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService) {
+            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService,
+            DerivedSecretCache derivedSecretCache) {
         this.userDetailsService = userDetailsService;
         this.jwtTokenManager = jwtTokenManager;
         this.roleService = roleService;
+        this.derivedSecretCache = derivedSecretCache;
     }
     
     @Override
@@ -58,7 +63,7 @@ public class AbstractAuthenticationManager implements IAuthenticationManager {
             throw new AccessException("user not found!");
         }
         NacosUserDetails nacosUserDetails = (NacosUserDetails) userDetailsService.loadUserByUsername(username);
-        if (nacosUserDetails == null || !PasswordEncoderUtil.matches(rawPassword, nacosUserDetails.getPassword())) {
+        if (nacosUserDetails == null || !matchesWithCache(username, rawPassword, nacosUserDetails.getPassword())) {
             throw new AccessException("user not found!");
         }
         return new NacosUser(nacosUserDetails.getUsername(), jwtTokenManager.createToken(username));
@@ -132,5 +137,21 @@ public class AbstractAuthenticationManager implements IAuthenticationManager {
         }
         nacosUser.setGlobalAdmin(hasGlobalAdminRole(nacosUser.getUserName()));
         return nacosUser.isGlobalAdmin();
+    }
+    
+    private boolean matchesWithCache(String username, String rawPassword, String encodedPassword) {
+        try {
+            if (derivedSecretCache == null) {
+                return PasswordEncoderUtil.matches(rawPassword, encodedPassword);
+            }
+            return derivedSecretCache.match(username, rawPassword,
+                    () -> PasswordEncoderUtil.matches(rawPassword, encodedPassword));
+        } catch (Exception e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            Loggers.AUTH.warn("[Derived-Cache] password match fallback for user {}", username, e);
+            return PasswordEncoderUtil.matches(rawPassword, encodedPassword);
+        }
     }
 }

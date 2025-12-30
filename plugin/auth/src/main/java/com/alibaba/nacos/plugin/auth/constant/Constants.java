@@ -37,6 +37,20 @@ public class Constants {
         
         public static final String NACOS_CORE_AUTH_ENABLE_USER_AGENT_AUTH_WHITE = "nacos.core.auth.enable.userAgentAuthWhite";
         
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_ENABLED = "nacos.core.auth.derived.cache.enabled";
+        
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_TTL_SECONDS = "nacos.core.auth.derived.cache.ttl-seconds";
+        
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_MAX_SIZE = "nacos.core.auth.derived.cache.max-size";
+        
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_NODE_SALT = "nacos.core.auth.derived.cache.node-salt";
+        
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_PRELOAD_USERS = "nacos.core.auth.derived.cache.preload-users";
+        
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_PRELOAD_ENABLED = "nacos.core.auth.derived.cache.preload-enabled";
+        
+        public static final String NACOS_CORE_AUTH_DERIVED_CACHE_MAX_PARALLEL_LOADS = "nacos.core.auth.derived.cache.max-parallel-loads";
+        
     }
     
     public static class Resource {

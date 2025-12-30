@@ -24,6 +24,7 @@ import com.alibaba.nacos.plugin.auth.impl.authenticate.DefaultAuthenticationMana
 import com.alibaba.nacos.plugin.auth.impl.authenticate.IAuthenticationManager;
 import com.alibaba.nacos.plugin.auth.impl.authenticate.LdapAuthenticationManager;
 import com.alibaba.nacos.plugin.auth.impl.constant.AuthSystemTypes;
+import com.alibaba.nacos.plugin.auth.impl.cache.DerivedSecretCache;
 import com.alibaba.nacos.plugin.auth.impl.filter.JwtAuthenticationTokenFilter;
 import com.alibaba.nacos.plugin.auth.impl.roles.NacosRoleServiceImpl;
 import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
@@ -177,7 +178,13 @@ public class NacosAuthConfig {
     
     @Bean
     public IAuthenticationManager defaultAuthenticationManager(NacosUserDetailsServiceImpl userDetailsService,
-            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService) {
-        return new DefaultAuthenticationManager(userDetailsService, jwtTokenManager, roleService);
+            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService,
+            DerivedSecretCache derivedSecretCache) {
+        return new DefaultAuthenticationManager(userDetailsService, jwtTokenManager, roleService, derivedSecretCache);
+    }
+    
+    @Bean
+    public DerivedSecretCache derivedSecretCache(AuthConfigs authConfigs) {
+        return new DerivedSecretCache(authConfigs);
     }
 }

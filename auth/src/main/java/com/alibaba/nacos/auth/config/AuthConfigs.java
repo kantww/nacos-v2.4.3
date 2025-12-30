@@ -80,6 +80,27 @@ public class AuthConfigs extends Subscriber<ServerConfigChangeEvent> {
     
     private boolean hasGlobalAdminRole;
     
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_ENABLED + ":true}")
+    private boolean derivedSecretCacheEnabled;
+    
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_TTL_SECONDS + ":600}")
+    private long derivedSecretCacheTtlSeconds;
+    
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_MAX_SIZE + ":10240}")
+    private int derivedSecretCacheMaxSize;
+    
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_NODE_SALT + ":}")
+    private String derivedSecretCacheNodeSalt;
+    
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_PRELOAD_USERS + ":}")
+    private String derivedSecretCachePreloadUsers;
+    
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_PRELOAD_ENABLED + ":false}")
+    private boolean derivedSecretCachePreloadEnabled;
+    
+    @Value("${" + Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_MAX_PARALLEL_LOADS + ":32}")
+    private int derivedSecretCacheMaxParallelLoads;
+    
     private Map<String, Properties> authPluginProperties = new HashMap<>();
     
     public AuthConfigs() {
@@ -151,6 +172,34 @@ public class AuthConfigs extends Subscriber<ServerConfigChangeEvent> {
         return enableUserAgentAuthWhite;
     }
     
+    public boolean isDerivedSecretCacheEnabled() {
+        return derivedSecretCacheEnabled;
+    }
+    
+    public long getDerivedSecretCacheTtlSeconds() {
+        return Math.max(derivedSecretCacheTtlSeconds, 0L);
+    }
+    
+    public int getDerivedSecretCacheMaxSize() {
+        return Math.max(derivedSecretCacheMaxSize, 1);
+    }
+    
+    public String getDerivedSecretCacheNodeSalt() {
+        return derivedSecretCacheNodeSalt;
+    }
+    
+    public String getDerivedSecretCachePreloadUsers() {
+        return derivedSecretCachePreloadUsers;
+    }
+    
+    public boolean isDerivedSecretCachePreloadEnabled() {
+        return derivedSecretCachePreloadEnabled;
+    }
+    
+    public int getDerivedSecretCacheMaxParallelLoads() {
+        return Math.max(derivedSecretCacheMaxParallelLoads, 1);
+    }
+    
     /**
      * auth function is open.
      *
@@ -194,6 +243,26 @@ public class AuthConfigs extends Subscriber<ServerConfigChangeEvent> {
             serverIdentityValue = EnvUtil.getProperty(Constants.Auth.NACOS_CORE_AUTH_SERVER_IDENTITY_VALUE, "");
             enableUserAgentAuthWhite = EnvUtil.getProperty(Constants.Auth.NACOS_CORE_AUTH_ENABLE_USER_AGENT_AUTH_WHITE,
                     Boolean.class, false);
+            derivedSecretCacheEnabled = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_ENABLED, Boolean.class,
+                            derivedSecretCacheEnabled);
+            derivedSecretCacheTtlSeconds = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_TTL_SECONDS, Long.class,
+                            derivedSecretCacheTtlSeconds);
+            derivedSecretCacheMaxSize = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_MAX_SIZE, Integer.class,
+                            derivedSecretCacheMaxSize);
+            derivedSecretCacheNodeSalt = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_NODE_SALT, derivedSecretCacheNodeSalt);
+            derivedSecretCachePreloadUsers = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_PRELOAD_USERS,
+                            derivedSecretCachePreloadUsers);
+            derivedSecretCachePreloadEnabled = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_PRELOAD_ENABLED, Boolean.class,
+                            derivedSecretCachePreloadEnabled);
+            derivedSecretCacheMaxParallelLoads = EnvUtil
+                    .getProperty(Constants.Auth.NACOS_CORE_AUTH_DERIVED_CACHE_MAX_PARALLEL_LOADS, Integer.class,
+                            derivedSecretCacheMaxParallelLoads);
             nacosAuthSystemType = EnvUtil.getProperty(Constants.Auth.NACOS_CORE_AUTH_SYSTEM_TYPE, "");
             refreshPluginProperties();
             ModuleStateHolder.getInstance().getModuleState(AuthModuleStateBuilder.AUTH_MODULE)

@@ -23,6 +23,7 @@ import com.alibaba.nacos.plugin.auth.impl.constant.AuthConstants;
 import com.alibaba.nacos.plugin.auth.impl.roles.NacosRoleServiceImpl;
 import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetailsServiceImpl;
+import com.alibaba.nacos.plugin.auth.impl.cache.DerivedSecretCache;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
@@ -93,9 +94,9 @@ public class LdapAuthConfig {
     @Conditional(ConditionOnLdapAuth.class)
     public IAuthenticationManager ldapAuthenticatoinManager(LdapTemplate ldapTemplate,
             NacosUserDetailsServiceImpl userDetailsService, TokenManagerDelegate jwtTokenManager,
-            NacosRoleServiceImpl roleService) {
+            NacosRoleServiceImpl roleService, DerivedSecretCache derivedSecretCache) {
         return new LdapAuthenticationManager(ldapTemplate, userDetailsService, jwtTokenManager, roleService,
-                filterPrefix, caseSensitive);
+                derivedSecretCache, filterPrefix, caseSensitive);
     }
     
 }

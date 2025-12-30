@@ -26,6 +26,7 @@ import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUser;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetails;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetailsServiceImpl;
+import com.alibaba.nacos.plugin.auth.impl.cache.DerivedSecretCache;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.filter.EqualsFilter;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,9 +47,9 @@ public class LdapAuthenticationManager extends AbstractAuthenticationManager {
     private final LdapTemplate ldapTemplate;
     
     public LdapAuthenticationManager(LdapTemplate ldapTemplate, NacosUserDetailsServiceImpl userDetailsService,
-            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService, String filterPrefix,
-            boolean caseSensitive) {
-        super(userDetailsService, jwtTokenManager, roleService);
+            TokenManagerDelegate jwtTokenManager, NacosRoleServiceImpl roleService, DerivedSecretCache derivedSecretCache,
+            String filterPrefix, boolean caseSensitive) {
+        super(userDetailsService, jwtTokenManager, roleService, derivedSecretCache);
         this.ldapTemplate = ldapTemplate;
         this.filterPrefix = filterPrefix;
         this.caseSensitive = caseSensitive;

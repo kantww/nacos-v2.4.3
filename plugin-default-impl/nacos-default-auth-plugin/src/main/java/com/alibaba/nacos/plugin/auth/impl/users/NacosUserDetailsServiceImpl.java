@@ -23,6 +23,8 @@ import com.alibaba.nacos.plugin.auth.impl.persistence.UserPersistService;
 import com.alibaba.nacos.persistence.model.Page;
 import com.alibaba.nacos.plugin.auth.impl.persistence.User;
 import com.alibaba.nacos.core.utils.Loggers;
+import com.alibaba.nacos.plugin.auth.impl.cache.DerivedSecretCache;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -51,9 +53,14 @@ public class NacosUserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     private AuthConfigs authConfigs;
     
+    @Autowired
+    @Lazy
+    private DerivedSecretCache derivedSecretCache;
+    
     @Scheduled(initialDelay = 5000, fixedDelay = 15000)
     private void reload() {
         try {
+            final Map<String, User> previous = userMap;
             Page<User> users = getUsersFromDatabase(1, Integer.MAX_VALUE, StringUtils.EMPTY);
             if (users == null) {
                 return;
@@ -64,6 +71,7 @@ public class NacosUserDetailsServiceImpl implements UserDetailsService {
                 map.put(user.getUsername(), user);
             }
             userMap = map;
+            invalidateChangedUsers(previous, map);
         } catch (Exception e) {
             Loggers.AUTH.warn("[LOAD-USERS] load failed", e);
         }
@@ -83,8 +91,19 @@ public class NacosUserDetailsServiceImpl implements UserDetailsService {
         return new NacosUserDetails(user);
     }
     
+    /**
+     * Update user password and refresh related caches.
+     *
+     * @param username target username
+     * @param password encoded password
+     */
     public void updateUserPassword(String username, String password) {
         userPersistService.updateUserPassword(username, password);
+        User cachedUser = userMap.get(username);
+        if (cachedUser != null) {
+            cachedUser.setPassword(password);
+        }
+        invalidateDerivedCache(username);
     }
     
     public Page<User> getUsersFromDatabase(int pageNo, int pageSize, String username) {
@@ -110,12 +129,50 @@ public class NacosUserDetailsServiceImpl implements UserDetailsService {
         return userPersistService.findUserLikeUsername(username);
     }
     
+    /**
+     * Create user and warm caches when enabled.
+     *
+     * @param username new username
+     * @param password encoded password
+     */
     public void createUser(String username, String password) {
         userPersistService.createUser(username, password);
+        if (authConfigs.isCachingEnabled()) {
+            User newUser = new User();
+            newUser.setUsername(username);
+            newUser.setPassword(password);
+            userMap.put(username, newUser);
+        }
+        invalidateDerivedCache(username);
     }
     
+    /**
+     * Delete user and invalidate caches.
+     *
+     * @param username target username
+     */
     public void deleteUser(String username) {
         userPersistService.deleteUser(username);
+        userMap.remove(username);
+        invalidateDerivedCache(username);
+    }
+    
+    private void invalidateChangedUsers(Map<String, User> previous, Map<String, User> current) {
+        if (previous == null || previous.isEmpty()) {
+            return;
+        }
+        for (Map.Entry<String, User> entry : previous.entrySet()) {
+            User latest = current.get(entry.getKey());
+            if (latest == null || !StringUtils.equals(entry.getValue().getPassword(), latest.getPassword())) {
+                invalidateDerivedCache(entry.getKey());
+            }
+        }
+    }
+    
+    private void invalidateDerivedCache(String username) {
+        if (derivedSecretCache != null) {
+            derivedSecretCache.invalidate(username);
+        }
     }
     
     public Page<User> findUsersLike4Page(String username, int pageNo, int pageSize) {

@@ -24,6 +24,7 @@ import com.alibaba.nacos.plugin.auth.impl.users.NacosUser;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetails;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetailsServiceImpl;
 import com.alibaba.nacos.plugin.auth.impl.utils.PasswordEncoderUtil;
+import com.alibaba.nacos.plugin.auth.impl.cache.DerivedSecretCache;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,6 +51,9 @@ public class LdapAuthenticationManagerTest {
     @Mock
     private LdapTemplate ldapTemplate;
     
+    @Mock
+    private DerivedSecretCache derivedSecretCache;
+    
     private LdapAuthenticationManager ldapAuthenticationManager;
     
     private User user;
@@ -60,7 +64,7 @@ public class LdapAuthenticationManagerTest {
         user.setUsername("nacos");
         user.setPassword(PasswordEncoderUtil.encode("test"));
         ldapAuthenticationManager = new LdapAuthenticationManager(ldapTemplate, userDetailsService, jwtTokenManager,
-                roleService, "", true);
+                roleService, derivedSecretCache, "", true);
     }
     
     @Test
