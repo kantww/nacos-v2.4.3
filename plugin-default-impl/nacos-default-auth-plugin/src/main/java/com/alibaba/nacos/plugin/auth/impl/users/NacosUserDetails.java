@@ -47,6 +47,18 @@ public class NacosUserDetails implements UserDetails {
         return user.getPassword();
     }
     
+    public String getDerivedPassword() {
+        return user.getDerivedPassword();
+    }
+    
+    public void setDerivedPassword(String derivedPassword) {
+        user.setDerivedPassword(derivedPassword);
+    }
+    
+    public com.alibaba.nacos.plugin.auth.impl.persistence.User getUser() {
+        return user;
+    }
+    
     @Override
     public String getUsername() {
         return user.getUsername();

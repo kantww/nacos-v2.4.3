@@ -30,6 +30,11 @@ public class User implements Serializable {
     private String username;
     
     private String password;
+
+    /**
+     * In-memory derived password for lightweight verification; not persisted.
+     */
+    private transient String derivedPassword;
     
     public String getPassword() {
         return password;
@@ -45,5 +50,13 @@ public class User implements Serializable {
     
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getDerivedPassword() {
+        return derivedPassword;
+    }
+
+    public void setDerivedPassword(String derivedPassword) {
+        this.derivedPassword = derivedPassword;
     }
 }
