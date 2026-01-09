@@ -16,6 +16,7 @@
 
 package com.alibaba.nacos.plugin.auth.impl.persistence;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
 
 /**
@@ -30,6 +31,12 @@ public class User implements Serializable {
     private String username;
     
     private String password;
+
+    /**
+     * Derived password used for lightweight verification. Runtime only; never persisted or serialized.
+     */
+    @JsonIgnore
+    private transient String derivedPassword;
     
     public String getPassword() {
         return password;
@@ -45,5 +52,13 @@ public class User implements Serializable {
     
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getDerivedPassword() {
+        return derivedPassword;
+    }
+
+    public void setDerivedPassword(String derivedPassword) {
+        this.derivedPassword = derivedPassword;
     }
 }

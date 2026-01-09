@@ -51,6 +51,14 @@ public class NacosUserDetails implements UserDetails {
     public String getUsername() {
         return user.getUsername();
     }
+
+    public String getDerivedPassword() {
+        return user.getDerivedPassword();
+    }
+
+    public User getUser() {
+        return user;
+    }
     
     @Override
     public boolean isAccountNonExpired() {

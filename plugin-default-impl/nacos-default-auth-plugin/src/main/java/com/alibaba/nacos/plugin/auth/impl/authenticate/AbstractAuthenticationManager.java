@@ -27,6 +27,7 @@ import com.alibaba.nacos.plugin.auth.impl.token.TokenManagerDelegate;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUser;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetails;
 import com.alibaba.nacos.plugin.auth.impl.users.NacosUserDetailsServiceImpl;
+import com.alibaba.nacos.plugin.auth.impl.utils.DerivedPasswordUtil;
 import com.alibaba.nacos.plugin.auth.impl.utils.PasswordEncoderUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,9 +59,19 @@ public class AbstractAuthenticationManager implements IAuthenticationManager {
             throw new AccessException("user not found!");
         }
         NacosUserDetails nacosUserDetails = (NacosUserDetails) userDetailsService.loadUserByUsername(username);
-        if (nacosUserDetails == null || !PasswordEncoderUtil.matches(rawPassword, nacosUserDetails.getPassword())) {
+        
+        String derivedPassword = nacosUserDetails.getDerivedPassword();
+        if (StringUtils.isNotBlank(derivedPassword)) {
+            if (!DerivedPasswordUtil.matches(username, rawPassword, nacosUserDetails.getPassword(), derivedPassword)) {
+                throw new AccessException("user not found!");
+            }
+            return new NacosUser(nacosUserDetails.getUsername(), jwtTokenManager.createToken(username));
+        }
+        if (!PasswordEncoderUtil.matches(rawPassword, nacosUserDetails.getPassword())) {
             throw new AccessException("user not found!");
         }
+        String calculated = DerivedPasswordUtil.derive(username, rawPassword, nacosUserDetails.getPassword());
+        nacosUserDetails.getUser().setDerivedPassword(calculated);
         return new NacosUser(nacosUserDetails.getUsername(), jwtTokenManager.createToken(username));
     }
     
