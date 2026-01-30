@@ -42,6 +42,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.zip.CheckedInputStream;
@@ -363,8 +364,22 @@ public final class DiskUtils {
             zos.flush();
             fos.getFD().sync();
         }
+        fsync(new File(outputFile));
     }
     
+    /**
+     * Calls fsync on a file or directory.
+     *
+     * @param file file or directory
+     * @throws IOException if an I/O error occurs
+     */
+    public static void fsync(final File file) throws IOException {
+        final boolean isDir = file.isDirectory();
+        try (final FileChannel fc = FileChannel.open(file.toPath(), isDir ? StandardOpenOption.READ
+                : StandardOpenOption.WRITE)) {
+            fc.force(true);
+        }
+    }
     // copy from sofa-jraft
     
     private static void compressDirectoryToZipFile(final String rootDir, final String sourceDir,
@@ -402,6 +417,7 @@ public final class DiskUtils {
             zipStream.flush();
             fileOutputStream.getFD().sync();
         }
+        fsync(new File(outputFile));
     }
     
     private static void compressIntoZipFile(final String childName, final InputStream inputStream,
