@@ -83,8 +83,19 @@ public class NacosUserDetailsServiceImpl implements UserDetailsService {
         return new NacosUserDetails(user);
     }
     
+    /**
+     * Update user password and refresh cached user info if present.
+     *
+     * @param username username of target user
+     * @param password new password
+     */
     public void updateUserPassword(String username, String password) {
         userPersistService.updateUserPassword(username, password);
+        User cached = userMap.get(username);
+        if (cached != null) {
+            cached.setPassword(password);
+            cached.setDerivedPassword(null);
+        }
     }
     
     public Page<User> getUsersFromDatabase(int pageNo, int pageSize, String username) {
@@ -110,12 +121,25 @@ public class NacosUserDetailsServiceImpl implements UserDetailsService {
         return userPersistService.findUserLikeUsername(username);
     }
     
+    /**
+     * Create user and cache it when caching is enabled.
+     *
+     * @param username username of new user
+     * @param password password of new user
+     */
     public void createUser(String username, String password) {
         userPersistService.createUser(username, password);
+        if (authConfigs.isCachingEnabled()) {
+            User cached = new User();
+            cached.setUsername(username);
+            cached.setPassword(password);
+            userMap.put(username, cached);
+        }
     }
     
     public void deleteUser(String username) {
         userPersistService.deleteUser(username);
+        userMap.remove(username);
     }
     
     public Page<User> findUsersLike4Page(String username, int pageNo, int pageSize) {
