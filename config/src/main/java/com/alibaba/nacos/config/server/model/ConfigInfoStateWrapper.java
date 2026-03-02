@@ -27,6 +27,8 @@ import java.util.Objects;
 public class ConfigInfoStateWrapper implements Serializable {
     
     private long id;
+
+    private long nid;
     
     private String dataId;
     
@@ -44,6 +46,14 @@ public class ConfigInfoStateWrapper implements Serializable {
     
     public void setId(long id) {
         this.id = id;
+    }
+
+    public long getNid() {
+        return nid;
+    }
+    
+    public void setNid(long nid) {
+        this.nid = nid;
     }
     
     public String getDataId() {

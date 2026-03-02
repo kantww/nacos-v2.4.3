@@ -95,7 +95,7 @@ public class DumpChangeConfigWorker implements Runnable {
                 if (configDeleted.size() < pageSize) {
                     break;
                 }
-                deleteCursorId = configDeleted.get(configDeleted.size() - 1).getId();
+                deleteCursorId = configDeleted.get(configDeleted.size() - 1).getNid();
                 
             }
             LogUtil.DEFAULT_LOG.info("Check delete configs finished,cost:{}",

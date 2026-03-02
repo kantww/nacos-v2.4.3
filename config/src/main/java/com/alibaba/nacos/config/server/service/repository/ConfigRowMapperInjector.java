@@ -232,6 +232,11 @@ public class ConfigRowMapperInjector {
             } catch (SQLException e) {
                 // ignore
             }
+            try {
+                info.setNid(rs.getLong("nid"));
+            } catch (SQLException e) {
+                // ignore
+            }
             
             return info;
         }
